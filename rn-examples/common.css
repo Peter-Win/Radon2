@@ -1,0 +1,90 @@
+﻿/* CSS for Radon examples */
+* {font-size:20px; font-family:Tahoma;}
+
+
+html, body, li, ul, p, div, span, input, header, footer, aside, nav, h1, h2, h3, h4, h5 { margin:0; padding:0;}
+body {background-color:#CCC; text-align:center;}
+h1 {font-size:140%; margin:0 0 1em 0; border-top:0.5em solid #DDD; color:#223335; padding-left:0.5em;}
+h2 {font-size:130%; margin:0.5em 0; padding:0.1em 0.5em; background-color:#EEE;}
+
+#Realm { max-width:80em; background-color:#FFF; text-align:left; display:inline-block; max-width:60em; width:100%;}
+
+#Sidebar { float: left; width:23%; background-color:#EEE;  box-sizing:border-box;}
+#Sidebar li {list-style:disc outside; padding: 0.4em 1em 0.4em 0; margin-left:1.6em; color:#888;}
+#Sidebar a { text-decoration:none; color:#555; display:block; font-size:85%;}
+#Sidebar a:hover, #Sidebar li:hover { color:#005;}
+#Sidebar a.current { font-weight:bold; }
+
+#Content { float:right; width:75%; padding: 0.2em 1em 0.2em 0.4em; box-sizing:border-box; }
+
+header { padding: 1em;
+  background: radial-gradient(ellipse farthest-side at right top, #ffd842, #FFF);
+}
+a.home { text-decoration:none; font-size:200%; color:#00C;}
+.home b { font-size:150%; color:black; padding: 0.1em 0.2em;
+  background: #ffd842 radial-gradient(ellipse farthest-side at 70% 110%, #C90,#C90,#C90, #ffd842,#FFD843);
+  text-shadow: 0 0 0.05em #FFF; box-shadow: inset 0 0 0.1em #FFF; }
+
+.doc-box {float:right; margin:0.2em 1em; font-size:80%; color:#400; text-align:center;}
+.doc-box a { display:inline-block; border: thin #000 solid; border-radius:0.2em; padding:0.3em 1em;
+   color:#000; text-decoration: none;
+   background: #ffd842 linear-gradient(to bottom, #ffd842, #C90); }
+.doc-box a:hover { color:#003; text-shadow:0 0 0.1em #FF0;}
+
+footer {
+	clear:both; padding: 2em 1em 0.5em 1em; 
+	font-size:70%; font-family:Times;
+	background-color:#223335; color:white;
+}
+
+p { font-size:90%; color:#330;}
+.api-ref-box {  margin-bottom:0.5em; padding-left:0.5em;}
+
+/* ======================== */
+@media screen and (max-width: 980px) 
+{
+	* {font-size:30pt;}
+	#Sidebar {float:none; width:100%; }
+	#Content {float:none; width:100%; }
+}
+
+
+.buttons-box { margin:0.5em 0;}
+.buttons-box input {margin-right:1em; padding:0.3em 0.5em;}
+
+/* Стандартный внешний вид форм и контроллеров */
+.stdskin .rn-ctrl > div { margin:0.2em 0;}
+.stdskin .title { display:inline-block; width:8em; text-align:right; vertical-align:top; padding-right:0.8em;}
+.stdskin .rn-required .title::after {content:"*"; color:#F00;} 
+.stdskin .invalid input[type=text] { background-color:#FCC;}
+.stdskin form { display:inline-block; border: thin solid silver; padding:0.4em 1em; margin:0.2em; }
+
+/* ---- RatingBar ------------*/
+.rating-bar { border:thin solid silver; padding: 0.4em; display:inline-block; }
+.rating-star { display:inline-block; width:1cm; height:1cm; margin:0.1em; cursor:pointer; }
+.rating-star path {fill:#AAA;}
+.rating-star.active path { fill:#FF0; stroke:#AA0; stroke-width:1; }
+.rating-star:hover path{fill:#CCC;}
+.rating-star.active:hover path { fill:#FFC; }
+
+/* ------- IntSlider ---------- */
+.tracker {display:inline-block; width:0.75em; height:100%; position:absolute;
+  margin:0; padding:0;
+  border:2px outset #FFF; background-color:#CCC; cursor:pointer;
+  box-sizing: border-box;
+}
+.slider {display:inline-block; position:relative; width:10em; height:1.2em;
+    background-color:#EEE; vertical-align:top;  margin:0; padding:0;
+}
+.slider-shell {border:thin silver solid; margin:0; padding:0; display:inline-block;}
+
+.polygon-img { text-align:center; padding:1em;}
+.polygon-img svg { width:10em; height:10em;}
+path.external { fill: none; stroke: #800; stroke-width: 2px; }
+path.internal { fill: none; stroke: #AAA; stroke-width: 1px; stroke-dasharray:5 5; }
+
+/* --------------- ColorPicker ------------- */
+.color-demo { display: inline-block; vertical-align:top; height:2em; width:8em; border:thin black solid;}
+.hue .slider {background:linear-gradient(to right,#F00,#FF0,#0F0,#0FF,#00F,#F0F,#F00);}
+.lightness .slider {background:linear-gradient(to right, #000,#FFF);}
+
