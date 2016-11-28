@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+
+<html data-name="IntSlider">
+<head>
+  <title>Radon examples. IntSlider</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <script src="../jquery.js" type="text/javascript"></script>
+  <script src="../radon2.js" type="text/javascript"></script>
+  <script src="./common.js" type="text/javascript"></script>
+  <script src="./examples.js" type="text/javascript"></script>
+  <link rel="Stylesheet" href="./common.css" />
+  
+  <script type="text/javascript">
+  $(function(){
+    Rn.init();
+  });
+  </script>
+</head>
+<body>
+
+<div id="Realm">
+  <header>
+  </header>
+
+  <nav id="Sidebar"></nav>
+
+  <div id="Content">
+	<h1></h1>
+	
+	
+	<div class="rn-page stdskin" data-name="start">
+<h2>Параметры многоугольника</h2>
+<form class="rn-form" name="poly" data-type="Polygon" action=""
+   data-from_params="1">
+  <div class="rn-ctrl" data-name="N" data-type="IntSlider"
+      data-min="3" data-max="12" data-value0="5"
+      data-title="Число углов"></div>
+  <div class="rn-ctrl" data-name="R" data-type="IntSlider"
+      data-min="10" data-max="100" data-value0="50"
+      data-title="Радиус"></div>
+  <div class="rn-ctrl" data-name="Phi" data-type="IntSlider"
+      data-min="-180" data-max="180" data-value0="0"
+      data-title="Поворот"></div>
+   <div class="polygon-img">
+   </div>
+   <div class="buttons-box">
+     <input class="rn-submit" type="submit" value="Готово" />
+     <input class="rn-reset" type="reset" value="Сбросить" />
+   </div>
+</form>
+	</div>
+	
+	<!-- Templates -->
+<script id="TmCtrlIntSlider" type="text/html">
+  <div>
+    <span class="title">{{title}}</span>
+    <span class="slider-shell"><span class="slider"></span></span>
+    <input type="text" name="{{name}}" size="2" />
+  </div>
+</script>
+
+<script id="TmPolygonImg" type="type/html">
+  <svg width="10em" height="10em" viewBox="0 0 200 200">
+    <path class="internal" d="{{i}}" />
+    <path class="external" d="{{e}}" />
+  </svg>
+</script>
+
+<script type="text/jscript">
+	var g_Lang = {
+		sliderMsg: "Необходимо ввести целое число",
+		sliderMin: "Значение не должно быть меньше {{min}}",
+		sliderMax: "Значение не должно быть больше {{max}}"
+	};
+</script>
+	
+  <footer></footer>
+</div><!-- #Realm -->
+
+</body>
+</html>

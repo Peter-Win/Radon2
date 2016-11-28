@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+
+<html data-name="FormPerson">
+<head>
+  <title>Radon examples. FormPerson</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <script src="../jquery.js" type="text/javascript"></script>
+  <script src="../radon2.js" type="text/javascript"></script>
+  <script src="./common.js" type="text/javascript"></script>
+  <script src="./examples.js" type="text/javascript"></script>
+  <link rel="Stylesheet" href="./common.css" />
+  
+  <style type="text/css">
+  .rn-ctrl > div { padding: 0.5em 0.3em;}
+  .title {display:inline-block; vertical-align:top; width:10em; text-align:right; padding-right:1em;}
+  .rn-ctrl.invalid {background-color:#FEE;}
+  .rn-ctrl.invalid .title {color:#C00;}
+  .rn-required .title::after {content:"*"; color:#F00;} 
+  .rn-ctrl input[type=text] { width:15em;}
+  input[type=reset], input[type=submit] { margin-left:1em; padding:0.2em 1em;}
+  .docnum-help { font-size:80%; color:#777; display:none;}
+  .invalid .docnum-help {display:block;}
+  
+  .err-msg { display:none; border:thin solid #A00; border-radius: 0.5em;
+     background-color: #FEE; color:#A00; cursor:pointer;
+     padding:0.2em 1em 0.2em 2em; margin:0.4em 0.4em 0.4em 1em;}
+   .err-msg:before { content: "!"; position: absolute; margin-left: -1.5em;
+     border: thin solid #A00; border-radius: 0.5em; width: 1em; height: 1em;
+     color: white; background-color: #C00; text-align: center; font-weight: bold; }
+  </style>
+  
+  <script type="text/javascript">
+  $(function(){
+    Rn.init();
+  });
+  </script>
+</head>
+<body>
+
+<div id="Realm">
+  <header>
+  </header>
+
+  <div id="Content">
+	<h1></h1>
+	
+	
+<div class="rn-page" data-name="start">
+  <h2>Ввод персональных данных</h2>
+  <form class="rn-form" name="person" data-type="Person" action="#">
+    <div class="rn-ctrl" data-name="tariff" data-type="Droplist" data-value0="Adult"
+      data-title="Тариф" data-options="TariffList"></div>
+    <div class="rn-ctrl" data-name="docType" data-type="DocList" data-value0="1"
+      data-title="Тип документа" data-options="g_DocTypes" data-option_value="@"></div>
+    <div class="rn-ctrl" data-name="docNumber" data-type="String" data-title="Номер документа" data-tm="TmCtrlDocNumber">
+      <div class="rn-validator" data-type="NonEmpty" data-msg="Необходимо ввести номер документа"></div>
+      <div class="rn-validator" data-type="DocNumber" data-msg="Ошибка в номере документа"></div>
+      <div class="rn-filter" data-type="DocNumber"></div>
+    </div>
+    <div class="rn-ctrl" data-name="lastName" data-type="String" data-title="Фамилия">
+      <div class="rn-validator" data-type="NonEmpty" data-msg="Необходимо ввести фамилию"></div>
+      <div class="rn-validator" data-type="PassName" data-msg="Фамилия содержит недопустимые символы"></div>
+    </div>
+    <div class="rn-ctrl" data-name="firstName" data-type="String" data-title="Имя">
+      <div class="rn-validator" data-type="NonEmpty" data-msg="Необходимо ввести имя"></div>
+      <div class="rn-validator" data-type="PassName" data-msg="Имя содержит недопустимые символы"></div>
+    </div>
+    <div class="rn-ctrl" data-name="midName" data-type="String" data-title="Отчество">
+      <div class="rn-validator" data-type="NonEmptySometime" data-msg="Необходимо ввести отчество"></div>
+      <div class="rn-validator" data-type="PassName" data-msg="Отчество содержит недопустимые символы"></div>
+      <div class="rn-filter" data-type="NonEmpty"></div>
+    </div>
+    <div>
+      <span class="title"></span>
+      <input class="rn-submit" type="submit" value="Принять" />
+      <input class="rn-reset" type="reset" value="Сброс" />
+    </div>
+    <div class="err-msg"></div>
+  </form>
+  <div id="Result"></div>
+</div>
+	
+<!-- Templates -->
+
+<select id="TariffList" style="display:none">
+  <option value="Adult">Полный</option>
+  <option value="Kid">Детский</option>
+</select>
+<script id="TmCtrlDroplist" type="text/html">
+  <div>
+    <span class="title">{{title}}</span>
+    <select name="{{name}}"></select>
+  </div>
+</script>
+<script id="TmCtrlString" type="text/html">
+    <div>
+      <span class="title">{{title}}</span>
+      <input type="{{input_type}}" name="{{name}}"
+        {{#maxlength}}maxlength="{{maxlength}}"{{/maxlength}}
+        {{#placeholder}}placeholder="{{placeholder}}"{{/placeholder}} />
+    </div>
+</script>
+<script id="TmCtrlDocNumber" type="text/html">
+  <div>
+    <span class="title">{{title}}</span>
+    <div style="display:inline-block">
+      <input type="{{input_type}}" name="{{name}}"
+        {{#maxlength}}maxlength="{{maxlength}}"{{/maxlength}}
+        {{#placeholder}}placeholder="{{placeholder}}"{{/placeholder}} />
+      <div class="docnum-help">
+        Формат номера: <span class="docnum-fmt"></span>
+      </div>
+    </div>
+  </div>
+</script>
+  </div><!-- #Content -->
+
+  <nav id="Sidebar"></nav>
+	
+  <footer></footer>
+</div><!-- #Realm -->
+
+</body>
+</html>

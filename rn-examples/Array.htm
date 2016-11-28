@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html data-name="Array">
+<head>
+  <title>Radon examples. Array</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+  <script src="../jquery.js" type="text/javascript"></script>
+  <script src="../radon2.js" type="text/javascript"></script>
+  <script src="./common.js" type="text/javascript"></script>
+  <script src="./examples.js" type="text/javascript"></script>
+  <link rel="Stylesheet" href="./common.css" />
+
+  <style type="text/css">
+    .address-frame {
+      border: thin solid silver; margin:0.2em 0; padding: 0.2em 0.5em;
+    }
+    .address-frame .rn-del-item {
+      position: absolute; display: inline-block;
+      width: 1.5em; height: 1.5em;
+      background: #999 linear-gradient(to bottom, #EEE, #888);
+      border-radius: 100%; text-decoration: none;
+      text-align: center; vertical-align: top;
+      color: inherit;
+    }
+    .address-frame .rn-del-item.disabled {
+      display: none;
+    }
+    div[data-name=home] input { width:3em; }
+  </style>
+
+  <script type="text/javascript">
+    $(function(){
+      Rn.init();
+    });
+  </script>
+</head>
+<body>
+
+<div id="Realm">
+  <header>
+  </header>
+
+  <nav id="Sidebar"></nav>
+
+  <div id="Content">
+    <h1></h1>
+
+
+    <div class="rn-page stdskin" data-name="start">
+      <h2>Ввод данных с несколькими адресами</h2>
+      <form class="rn-form" name="info">
+        <div class="rn-ctrl" data-name="name" data-type="String" data-title="Фамилия">
+          <div class="rn-validator" data-type="NonEmpty"
+               data-msg="Необходимо ввести фамилию"></div>
+        </div>
+        <div class="rn-ctrl" data-name="addr" data-type="Array" data-title="Адреса"
+          data-item_tm="TmAddrItem" data-min="1" data-max="3"></div>
+        <div class="buttons-box">
+          <input class="rn-submit" type="submit" value="Готово" />
+          <input class="rn-reset" type="reset" value="Сбросить" />
+        </div>
+      </form>
+    </div>
+    <!-- Шаблоны -->
+    <div style="display: none">
+      <script id="TmCtrlString" type="text/html">
+        <div>
+          <span class="title">{{title}}</span>
+          <input type="{{input_type}}" name="{{name}}"
+            {{#maxlength}}maxlength="{{maxlength}}"{{/maxlength}}
+            {{#placeholder}}placeholder="{{placeholder}}"{{/placeholder}} />
+        </div>
+      </script>
+      <script id="TmCtrlArray" type="text/html">
+        <div>
+          {{title}}:
+          <div class="rn-array"></div>
+          <button type="button" class="rn-add-item">Добавить адрес</button>
+        </div>
+      </script>
+      <script id="TmAddrItem" type="text/html">
+        <div class="address-frame">
+          <a class="rn-del-item" title="Удалить" href="#del">×</a>
+          <div class="rn-ctrl" data-name="city" data-type="String" data-title="Город">
+            <div class="rn-validator" data-type="NonEmpty" data-msg="Нужно ввести город"></div>
+          </div>
+          <div class="rn-ctrl" data-name="street" data-type="String" data-title="Улица">
+            <div class="rn-validator" data-type="NonEmpty" data-msg="Нужно ввести улицу"></div>
+          </div>
+          <div class="rn-ctrl" data-name="home" data-type="String" data-title="Дом"></div>
+        </div>
+      </script>
+    </div>
+  </div>
+</div>
+</body>
+</html>

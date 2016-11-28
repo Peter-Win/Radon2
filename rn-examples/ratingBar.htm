@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+
+<html data-name="RatingBar">
+<head>
+  <title>Radon examples. RatingBar</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <script src="../jquery.js" type="text/javascript"></script>
+  <script src="../radon2.js" type="text/javascript"></script>
+  <script src="./common.js" type="text/javascript"></script>
+  <script src="./examples.js" type="text/javascript"></script>
+  <link rel="Stylesheet" href="./common.css" />
+  
+  <script type="text/javascript">
+  $(function(){
+    Rn.init();
+  });
+  </script>
+</head>
+<body>
+
+<div id="Realm">
+  <header>
+  </header>
+
+
+  <div id="Content">
+	<h1></h1>
+	
+	
+	<div class="rn-page stdskin" data-name="start">
+		<h2>Современная форма</h2>
+		<p>
+		  Современные формы оперируют структурами данных, которые удобно переводить в формат JSON.
+		</p>
+		<form class="rn-form" name="modern" action="#">
+			<div class="rn-ctrl" data-name="name" data-type="String" data-title="Наименование">
+			  <div class="rn-validator" data-type="NonEmpty" data-msg="Необходимо ввести Наименование"></div>
+			</div>
+			<div class="rn-ctrl" data-name="rating" data-type="RatingBar"
+				data-title="Оценка" data-value0="3"></div>
+			<div class="buttons-box">
+			  <span class="title"></span>
+			  <input class="rn-submit" type="submit" value="Готово" />
+			  <input class="rn-reset" type="reset" value="Сбросить" />
+			</div>
+		</form>
+			
+		<h2>Классическая форма</h2>
+		<p>
+		  Классические формы в случае сабмита отправляют данные на сервер.
+		  При этом происходит перерисовка текущей страницы.
+		</p>
+		<form class="rn-form" name="classic" action="" data-type="Classic" data-from_params="1">
+			<div class="rn-ctrl" data-name="name" data-type="String" data-title="Наименование">
+			  <div class="rn-validator" data-type="NonEmpty" data-msg="Необходимо ввести Наименование"></div>
+			</div>
+			<div class="rn-ctrl" data-name="rating" data-type="RatingBar" data-support="1"
+				data-title="Оценка" data-value0="3"></div>
+			<div class="buttons-box">
+			  <span class="title"></span>
+			  <input class="rn-submit" type="submit" value="Готово" />
+			  <input class="rn-reset" type="reset" value="Сбросить" />
+			</div>
+		</form>
+	</div>
+		
+	<script id="TmCtrlString" type="text/html">
+	<div>
+	  <span class="title">{{title}}</span>
+	  <input type="{{input_type}}" name="{{name}}"
+		{{#maxlength}}maxlength="{{maxlength}}"{{/maxlength}}
+		{{#placeholder}}placeholder="{{placeholder}}"{{/placeholder}} />
+	</div>
+	</script>
+	<script id="TmCtrlRatingBar" type="text/html">
+	  <div>
+	    <span class="title">{{title}}</span>
+	    <div class="rating-bar"></div>
+	  </div>
+	</script>
+	<script id="TmRatingStar" type="text/html">
+	  <span class="rating-star"><svg width="100%" height="100%" viewBox="0 0 20 20">
+	   <path d="M10 1 L12.4 6.8 L18.6 7.2 L13.8 11.2 L15.3 17.3 L10 14 L4.7 17.3 L6.2 11.2 L1.4 7.2 L7.6 6.8 z"/>
+	  </svg></span>
+	</script>
+  </div>
+	
+  <nav id="Sidebar"></nav>
+	
+  <footer></footer>
+</div><!-- #Realm -->
+
+</body>
+</html>
