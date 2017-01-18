@@ -54,6 +54,7 @@ var Radon = new function() {
 		clsSubmit: 'rn-submit',	// Элемент сабмита формы,
 		clsReset: 'rn-reset',	// Элемент очистки формы
 		clsDisabled: 'disabled',		// класс, назначаемый запрещённым элементам
+		clsDisabledBox: 'disabled-box',	// класс, назначаемый внешнему контейнеру запрещённого контроллера
 		bUseDisabledAttr: 1,		// При запрещении элементов использовать атрибут disabled
 		
 		clsArrayBox: '.rn-array',	// Для CtrlArray. Контейнер для элементов массива, которые генерируются по шаблону item_tm
@@ -454,6 +455,9 @@ var Radon = new function() {
 			page.walk(visitor);
 		} catch (e) {
 			_trace('Error in openPage walk: '+e.message);
+			if (e.stack) {
+				_trace(e.stack);
+			}
 		}
 		self.update();
 	}
@@ -1456,6 +1460,8 @@ Rn.C.Base = function() {
 		if (this.$edit) {
 			Rn.enable(this.$edit, bOn);
 		}
+		// Класс clsDisabledBox для внешнего контейнера
+		this.$def.toggleClass(Rn.p.clsDisabledBox, !bOn);
 	}
 	
 	/**
