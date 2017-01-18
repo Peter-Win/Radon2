@@ -1295,6 +1295,7 @@ Rn.C.Base = function() {
 	this.validators = [];	// Список валидаторов
 	this.filters = [];		// Список фильтров
 	this.$edit = null;		// DOM-элемент, выполняющий редактирование
+	this.bDisabled = false;	// Признак того, что контроллер запрещён
 	
 	/**
 	 * Обход содержимого.
@@ -1363,7 +1364,7 @@ Rn.C.Base = function() {
 	 * Стандартное поведение: последовательное обращение к валидаторам контроллера
 	 */
 	this.check = function(errList) {
-		if (this.isVisible()) {	// Проверяются только видимые контроллеры
+		if (this.isVisible() && !this.bDisabled) {	// Проверяются только видимые и не запрещённые контроллеры
 			var i, res, v, validators = this.validators,
 				value = this.val();
 			for (i in validators) {
@@ -1457,11 +1458,15 @@ Rn.C.Base = function() {
 	 * @param {boolean} bOn
 	 */
 	this.enable = function(bOn) {
-		if (this.$edit) {
-			Rn.enable(this.$edit, bOn);
+		var bDisabled = !bOn;
+		if (this.bDisabled !== bDisabled) {
+			this.bDisabled = bDisabled;
+			if (this.$edit) {
+				Rn.enable(this.$edit, bOn);
+			}
+			// Класс clsDisabledBox для внешнего контейнера
+			this.$def.toggleClass(Rn.p.clsDisabledBox, bDisabled);
 		}
-		// Класс clsDisabledBox для внешнего контейнера
-		this.$def.toggleClass(Rn.p.clsDisabledBox, !bOn);
 	}
 	
 	/**
