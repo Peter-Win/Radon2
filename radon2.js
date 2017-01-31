@@ -3,7 +3,7 @@
  * Front-end data control system
  * Version 2.0
  * Created 2015-10-28 by PeterWin
- * Last modification: 2016-10-13
+ * Last modification: 2017-01-31
  */
  
 /*
