@@ -3,11 +3,16 @@
  * Front-end data control system
  * Version 2.0
  * Created 2015-10-28 by PeterWin
- * Last modification: 2016-06-16
+ * Last modification: 2016-10-13
  */
  
 /*
  Radon.init(startPageName='start') - required for system initialization
+ 2016-08-19 - Добавлено свойство unique в Radiobox (Иначе проблемы при использовании внутри Array)
+ 2016-10-11 - CtrlArray.addItem. Добавлен параметр srcParams
+ 2016-10-13 - Добавлен CtrlHidden
+ 2016-10-27 - dom2val открыта для всех контроллеров
+ 2016-10-31 - Добавлен метод submit() в класс FormBase
 */
 
 var Log = [];
@@ -49,6 +54,7 @@ var Radon = new function() {
 		clsSubmit: 'rn-submit',	// Элемент сабмита формы,
 		clsReset: 'rn-reset',	// Элемент очистки формы
 		clsDisabled: 'disabled',		// класс, назначаемый запрещённым элементам
+		clsDisabledBox: 'disabled-box',	// класс, назначаемый внешнему контейнеру запрещённого контроллера
 		bUseDisabledAttr: 1,		// При запрещении элементов использовать атрибут disabled
 		
 		clsArrayBox: '.rn-array',	// Для CtrlArray. Контейнер для элементов массива, которые генерируются по шаблону item_tm
@@ -126,47 +132,27 @@ var Radon = new function() {
 			return res;
 		}
 	}
-	
-	var Stack = this.Stack = {
-		top: function(newValue) {
-		},
-		push: function(data) {
-		},
-		pop: function() {
-		},
-		get: function() {
-		},
-		set: function() {
-		}
+
+	function pageNameFromCurrentURL() {
+		var url = location.hash;
+		return url ? url.slice(1) : Rn.p.start;
 	}
 
 	// Основной менеджер состояний
 	self.stateMgr = {
-		get: function(page) {
-			// TODO:
-		},
-		set: function(page, data) {
-			// TODO:
-		},
-		push: function(pageName, url, data) {
-			Stack.push({d:data,n:pageName});
+		push: function(pageName, url) {
 			history.pushState(null, null, url);
 			this.update();
 		},
 		init: function() {
 			var mgr = this;
 			$(window).on('popstate', function(ev){
-				var info = Stack.pop();
-				if (info) {
-					_trace('Mgr.popState, name='+info.n);
-					mgr.update(info);
-				}
+				mgr.update();
 			});
 		},
-		update: function(info) {
-			var pageName = info.n,
+		update: function() {
+			var pageName = pageNameFromCurrentURL(),
 				page = self.getPageEx(pageName);
-			_trace('Mgr.update. page='+pageName);
 			self._switchTo(page);
 		},
 		// Проверка работоспособности менеджера.
@@ -189,28 +175,11 @@ var Radon = new function() {
 	// Альтернативный менеджер состояний, который подключается в том случае, если не сработал основной
 	self.stateMgr2 = new function() {
 		var mgr = this;
-		this.prefix = 'Radon_state_';
-		function topName() {
-			return mgr.prefix+'top';
-		}
-		function getTopIndex() {
-			return self.Session.get(topName()) || 0;
-		}
-		this.get = function(page) {
-			var index = getTopIndex();
-			return self.Session.get(this.prefix+index);
-		}
-		this.set = function(page, data) {
-			self.Session.set(this.prefix+getTopIndex(), data);
-		}
-		this.push = function(pageName, url, data) {
-			_trace('Mgr2: Push, url='+url+', data='+JSON.stringify(data));
-			//Stack.push(name:pageName, data:data);
+		this.push = function(pageName, url) {
 			location.hash = url;
 			// далее сработает обработчик hashchange, который вызовет update
 		}
 		this.init = function() {
-			var mgr = this;
 			$(window).on('hashchange', function(e){
 				e.preventDefault();
 				_trace('Mgr2: hashchange');
@@ -219,7 +188,7 @@ var Radon = new function() {
 			});
 		}
 		this.update = function() {
-			var pageName = Rn.nameFromURL(location.href) || Rn.props.start;
+			var pageName = pageNameFromCurrentURL();
 			_trace('Mgr2.update, pageName = '+pageName);
 			Rn._switchTo(Rn.getPageEx(pageName));
 		}
@@ -389,14 +358,7 @@ var Radon = new function() {
 		form.$submit = $(getPropClass('Submit'), $def);
 
 		function onSubmit() {
-			var e, result=false;
-			try {
-				if (form.ok) {
-					form.onSubmit();
-					result = form.result || false;
-				}
-			} catch (e) {}
-			return result;
+			return form.submit();
 		}
 		if ($def.is('form')) {
 			// Если для $def использован тег FORM, тогда нужно повесить на него событие onsubmit
@@ -493,16 +455,19 @@ var Radon = new function() {
 			page.walk(visitor);
 		} catch (e) {
 			_trace('Error in openPage walk: '+e.message);
+			if (e.stack) {
+				_trace(e.stack);
+			}
 		}
 		self.update();
 	}
 	
 	function closePage(page) {
-		page.walk({
-			formBegin: function(form) {
-				form.close();
-			}
-		});
+		var visitor = {};
+		visitor.formBegin = visitor.pageBegin = visitor.ctrlBegin = function(obj) {
+			obj.onClose();
+		}
+		page.walk(visitor);
 		page.$def.hide();
 	}
 	
@@ -518,9 +483,9 @@ var Radon = new function() {
 	 * Сделать активной указанную страницу
 	 * @param {string} pageName	имя страницы, которую нужно сделать активной
 	 */
-	self.activate = function(pageName, data) {
+	self.activate = function(pageName) {
 		var page = self.getPageEx(pageName);
-		self.stateMgr.push(page.getURL(), data);
+		self.stateMgr.push(pageName, page.getURL());
 	}
 	
 	var updateTimerId = 0,
@@ -586,9 +551,7 @@ var Radon = new function() {
 	 * @param {jQuery|null} $scope	Элемент, внутри которого будет происходить поиск элементов .j-page.
 	 *                              Если не указан, то поиск пройдёт по всему документу.
 	 */
-	self.init = function(startPageName, data, $scope) {
-		//_trace('Radon init');
-
+	self.init = function(startPageName, $scope) {
 		if (!self.stateMgr.test())
 			self.stateMgr = self.stateMgr2;
 		self.stateMgr.init();
@@ -664,11 +627,12 @@ var Radon = new function() {
 		function ignore(j) {
 			dstChunks.push(tmBegin+srcChunks[j][0]+tmEnd);
 		}
-		function addValue(j, key, bEscape) {
+		function addValue(j, key, bNoEscape) {
 			if (key in params) {
 				var value = params[key];
-				if (bEscape) value = Rn.esc(value);
+				if (!bNoEscape) value = Rn.esc(value);
 				dstChunks.push(value);
+				return 1;
 			} else ignore(j);	// Если параметра нет, то оставляем конструкцию {{key}}
 		}
 		function condition(mode, key, begin, end) {
@@ -692,10 +656,16 @@ var Radon = new function() {
 				switch (first[0]) {
 				case '#':	// условная секция
 				case '^':
-					begin = condition(first[0], first.substring(1), begin, end);
+					begin = condition(first[0], first.slice(1), begin, end);
 					break;
 				case '{':	// неэкранированное значение
-					addValue(begin, first.substring(1,first.length-1), 1);
+					if (addValue(begin, first.slice(1), 1))
+						srcChunks[begin][1] = srcChunks[begin][1].slice(1); // Убрать лишний }
+					break;
+				case '?':	// Параметр, который в случае отсутствия заменяется на пустую строку
+					var key = first.slice(1);
+					params[key] = params[key] || '';
+					addValue(begin, key);
 					break;
 				default:	// экранированное значение
 					addValue(begin, first);
@@ -798,6 +768,26 @@ var Radon = new function() {
 				ctrl.filter(dstObj);
 		}
 	}
+
+	/**
+	 * Поиск объекта по элементу-описателю
+	 * @param def	Описатель объекта. Либо jQuery, либо DOM-объект
+	 * @param root	Radon-Объект, внутри которого идёт поиск
+	 * @return {RadonObject|null} или null, если не найдено соответствия
+	 */
+	self.findByDef = function(def, root) {
+		if (!def)
+			return null;
+		def = $(def);
+		root = root || self.curPage();
+		var visitor = {};
+		visitor.ctrlBegin = visitor.formBegin = visitor.pageBegin = function(obj) {
+			if (obj.$def[0] === def[0])
+				visitor.result = obj;
+		}
+		root.walk(visitor);
+		return visitor.result;
+	}
 }, Rn = Radon;
 
 var RadonObject = new function() {
@@ -882,24 +872,6 @@ function PageBase() {
 	this.getURL = function() {
 		return '#'+this.name;
 	}
-	
-	/**
-	 * Получить данные, связанные со страницей.
-	 * Можно вызывать только для текущей страницы.
-	 * @return Object
-	 * @throws Error
-	 */
-	this.getData = function() {
-		return Rn.stateMgr.get(this);
-	}
-	/**
-	 * Назначить новые данные, связанные со страницей.
-	 * Можно вызывать только для текущей страницы.
-	 * @param {Object} data
-	 */
-	this.setData = function(data) {
-		Rn.stateMgr.set(this, data);
-	}
 } // PageBase
 PageBase.prototype = RadonObject;
 
@@ -933,6 +905,19 @@ Rn.F.Base = function() {
 		}
 		if (visitor.formEnd)
 			visitor.formEnd(this);
+	}
+
+	this.submit = function() {
+		var form=this, result=false;
+		try {
+			if (form.ok) {
+				form.onSubmit();
+				result = form.result || false;
+			}
+		} catch (e) {
+			_trace('onSubmit error: ' + e.message);
+		}
+		return result;
 	}
 	
 	/**
@@ -1003,7 +988,18 @@ Rn.F.Base = function() {
 	this.reset = function() {
 		Rn.reset(this);
 	}
-	
+
+	/**
+	 * Искуственно установить фокус на форму.
+	 * Если есть контроллер, имеющий признак autofocus, то фокус получит он
+	 * Иначе - первый контроллер формы
+	 */
+	this.focus = function() {
+		var name, ctrls=this.ctrls;
+		for (name in ctrls) {
+			return ctrls[name].focus();
+		}
+	}
 	
 	// Общая проверка формы. Вызывается после валидации всех контроллеров
 	// Переопределяется наследниками, чтобы добавить проверки, не связанные с каким-то контроллером
@@ -1264,7 +1260,31 @@ Rn.Filter.Number = function() {
 	this.superClass = 'Base';
 	this.filter = function(dstObj) {
 		var name = this.ctrl.name;
-		dstObj[name] = +dstObj[name];
+		if (name in dstObj) {
+			dstObj[name] = +dstObj[name];
+		}
+	}
+}
+// Безусловное исключение данных контроллера
+// Требуется для тех элементов, которые управляют внешним видом формы
+// Например, чекбокс, который меняет видимость какой-то группы полей
+Rn.Filter.Exclude = function() {
+	this.superClass = 'Base';
+	this.filter = function(dstObj) {
+		// TODO: Временно считаем, что контроллер простой. Но нужна функция, возвращающая все данные контроллера
+		delete dstObj[this.ctrl.name];
+	}
+}
+
+// Замещать различные значения, соответсвующие логическому false, на null
+Rn.Filter.Nullable = function() {
+	this.superClass = 'Base';
+	this.filter = function(dstObj) {
+		// Считаем, что контроллер простоой
+		var name = this.ctrl.name;
+		if (!dstObj[name]) {
+			dstObj[name] = null;
+		}
 	}
 }
 
@@ -1275,6 +1295,7 @@ Rn.C.Base = function() {
 	this.validators = [];	// Список валидаторов
 	this.filters = [];		// Список фильтров
 	this.$edit = null;		// DOM-элемент, выполняющий редактирование
+	this.bDisabled = false;	// Признак того, что контроллер запрещён
 	
 	/**
 	 * Обход содержимого.
@@ -1343,7 +1364,7 @@ Rn.C.Base = function() {
 	 * Стандартное поведение: последовательное обращение к валидаторам контроллера
 	 */
 	this.check = function(errList) {
-		if (this.isVisible()) {	// Проверяются только видимые контроллеры
+		if (this.isVisible() && !this.bDisabled) {	// Проверяются только видимые и не запрещённые контроллеры
 			var i, res, v, validators = this.validators,
 				value = this.val();
 			for (i in validators) {
@@ -1407,7 +1428,7 @@ Rn.C.Base = function() {
 		return Rn.tm(tmId, this, this.$def, 1);
 	}
 	
-	var bVisible=1;
+	var bVisible= 1;
 	
 	/**
 	 * Показать или скрыть контроллер
@@ -1418,15 +1439,34 @@ Rn.C.Base = function() {
 		// Пока что единственный плюс использования внутренней переменной перед is(:visible) в скорости
 		if (bOn ^ bVisible) {	// если новое значение отличается от старого...
 			this.$def.toggle(bVisible = !!bOn);
+			this.update();
 		}
 	}
-	
+
 	/**
 	 * Проверка видимости контроллера
 	 * @return {boolean}
 	 */
 	this.isVisible = function() {
 		return !!bVisible;
+	}
+
+	/**
+	 * Запретить или разрешить контроллер.
+	 * Стандартная реализация предполагает наличие поля $edit
+	 * Для тех контроллеров, которые им не пользуются, нужно переопределить данную функцию
+	 * @param {boolean} bOn
+	 */
+	this.enable = function(bOn) {
+		var bDisabled = !bOn;
+		if (this.bDisabled !== bDisabled) {
+			this.bDisabled = bDisabled;
+			if (this.$edit) {
+				Rn.enable(this.$edit, bOn);
+			}
+			// Класс clsDisabledBox для внешнего контейнера
+			this.$def.toggleClass(Rn.p.clsDisabledBox, bDisabled);
+		}
 	}
 	
 	/**
@@ -1442,8 +1482,10 @@ Rn.C.Base = function() {
 	
 	// Считать значения из ДОМ-элементов и сохранить в объекте контроллера
 	// Эта функция должна принадлежать только определённым контроллерам и вызывается только внутри render()
-	//this.dom2val = function() {
-	//}
+	// В редких случаях возможно применение напрямую. Например, Хром подставляет пароль в форму авторизации, не вызывая события об изменении.
+	// В этом случае можно вызвать dom2val, чтобы перенести полученный пароль в контроллер. Но после этого не забываем вызывать Rn.update()
+	this.dom2val = function() {
+	}
 }
 Rn.C.Base.prototype = RadonObject;
 
@@ -1575,11 +1617,14 @@ Rn.C.Value = function() {
 	 * Может вызвать onUpdate
 	 */
 	this.fromDOM = function() {
-		var oldValue = this.value;
+		var result= 0, oldValue = this.value;
 		this.dom2val();
 		// здесь можно немного сэкономить, если не вызывать update всех контроллеров
-		if (oldValue!==this.value)
+		if (oldValue!==this.value) {
 			this.update();
+			result = 1;
+		}
+		return result;
 	}
 	
 	// Метод для загрузки данных из параметров урла
@@ -1678,6 +1723,15 @@ Rn.C.Password = function() {
 Rn.C.Checkbox = function() {
 	this.superClass = 'Value';
 	this.value = this.value0 = false;
+
+	this.setValue = function(value) {
+		if (typeof value=='string') {
+			value = !(!value || value=='0' || value=='false');
+		} else {
+			value = !!value;
+		}
+		return this.Value_setValue(value);
+	}
 	
 	this.val2dom = function() {
 		this.$edit.prop('checked', !!this.value);
@@ -1772,12 +1826,11 @@ Rn.C.Array = function() {
 	this.load = function(srcObj) {
 		if (typeof srcObj != 'object' || !(this.name in srcObj))
 			return;
-		this.items.length = 0;
-		this.$array.empty();
+		this.clear();
 		var i, name, item, dataNode, srcObjItems=srcObj[this.name];
 		for (i in srcObjItems) {
 			dataNode = srcObjItems[i];
-			this.addItem();
+			this.addItem(dataNode);
 			item = this.items[this.items.length-1];
 			for (name in item.ctrls) {
 				item.ctrls[name].load(dataNode);
@@ -1788,22 +1841,30 @@ Rn.C.Array = function() {
 	this.addCtrl = function(ctrl) {
 		// Ничего не делаем, т.к. добавление происходит в CtrlArray.addItem: ctrl.items.push(groupCtrl)
 	}
+
+	/**
+	 * При генерации шаблона могут понадобиться параметры
+	 * @param {int} i
+	 * @return {Object=} Параметры для i-го элемента
+	 */
+	this.getItemParams = function(i) {}
 	
 	/**
 	 * Добавление нового элемента в конец массива
 	 */
-	this.addItem = function() {
+	this.addItem = function(srcParams) {
 		// Не добавлять больше, чем разрешено
 		var tm, ctrl=this, nMax = this.getMax();
-		if (nMax && this.items.length >= nMax)
-			return;
+		if (nMax && ctrl.items.length >= nMax)
+			return 0;
 		
 		// Создать DOM-элемент, описатель контроллела элемента массива
 		tm = ctrl.item_tm;
 		if (!tm)
 			throw new Error('Item template is not specified for '+ctrl.name);
-		var $group = Radon.tm(tm,0, ctrl.$array);
-		
+		var tmParams = ctrl.getItemParams(ctrl.items.length) || srcParams;
+		var $group = Rn.tm(tm, tmParams, ctrl.$array);
+
 		// Кнопка удаления элемента. Поиск происходит до создания подчинённых контроллеров, у которых могут быть свои кнопки удаления
 		var $del = $(Rn.p.clsArrayDel, $group);
 		
@@ -1821,7 +1882,9 @@ Rn.C.Array = function() {
 			return ctrl.$array.children().index($group);
 		}
 		// Разрешить/запретить кнопки удаления элемента
+		groupCtrl._onUpdate = groupCtrl.onUpdate;
 		groupCtrl.onUpdate = function() {
+			groupCtrl._onUpdate();
 			var nMin = ctrl.getMin();
 			if (nMin)
 				Rn.enable($del, ctrl.items.length > nMin);
@@ -1835,6 +1898,7 @@ Rn.C.Array = function() {
 		});
 		
 		ctrl.update();
+		return groupCtrl;
 	}
 	
 	/**
@@ -1847,10 +1911,15 @@ Rn.C.Array = function() {
 		ctrl.$array.children().eq(index).remove();
 		ctrl.update();
 	}
-	
-	this.onReset = function() {
+
+	this.clear = function() {
 		this.$array.empty();
 		this.items.length = 0;
+		this.update();
+	}
+	
+	this.onReset = function() {
+		this.clear();
 		var nMin = this.getMin();
 		if (nMin) {
 			while (this.items.length<nMin) {
@@ -1897,7 +1966,7 @@ Rn.C.Droplist = function() {
 		});
 		ctrl.buildList();
 	}
-	this.isValidOption = function(value, label) {
+	this.isValidOption = function(value, label, defNode) {
 		return true;
 	}
 	
@@ -1913,7 +1982,7 @@ Rn.C.Droplist = function() {
 		// стандартный Droplist использует шаблон, указанный свойством options, либо скриптовый массив в глобальной области видимости
 		var ctrl = this, sel = ctrl.$edit.empty();
 		Rn.buildList(ctrl, function(value, label, defNode){
-			if (ctrl.isValidOption(value, label))
+			if (ctrl.isValidOption(value, label, defNode))
 				ctrl.createOption(value, label, defNode);
 		});
 		ctrl.val2dom();
@@ -1969,10 +2038,12 @@ Rn.buildList = function(ctrl, callbk) {
 // Radiobox и RadioBox - синонимы для удобства разработчика
 // По функционалу похож на Droplist
 //**************************************************
+Rn.unique = 0;
 Rn.C.Radiobox = Rn.C.RadioBox = function() {
 	this.superClass = 'Value';
 	this.$rbox = null;
 	this.value = this.value0 = '';
+	this.unique = Rn.unique++;	// Уникальный индекс данного экземпляра. Необходим для формирования имени элемента :radio
 	
 	this.val2dom = function() {
 		var ctrlVal = this.value;
@@ -2009,7 +2080,7 @@ Rn.C.Radiobox = Rn.C.RadioBox = function() {
 		var	item, opt = {};
 		if ($.isPlainObject(itemDef))
 			$.extend(opt, itemDef);
-		$.extend(opt, ctrl, {value:value, label:label});
+		$.extend(opt, ctrl, {value:value, label:label, unique:this.unique});
 		// Создать вариант и зарегистрировать в боксе
 		item = Rn.tm(radioTm, opt, ctrl.$rbox);
 		// Повесить обработчик события change на радиоэлемент, который находится внутри варианта
@@ -2065,10 +2136,23 @@ Rn.C.Text = function() {
 	this.render = function() {
 		var ctrl = this;
 		ctrl.Base_render();
-		Rn.setTextHandler(ctrl.$input = $('textarea', ctrl.$def), function(){
+		Rn.setTextHandler(ctrl.$edit = $('textarea', ctrl.$def), function(){
 			ctrl.fromDOM();
 		});
 		ctrl.val2dom();	// Вывести значение контроллера в DOM-элемент.
 	}
 }
 
+//===========================
+// CtrlHidden - Невидимый контроллер
+// Не требует шаблона
+//===========================
+Rn.C.Hidden = function() {
+	this.superClass = 'Value';
+	this.render = function() {
+		var ctrl = this;
+		ctrl.$edit = $('<input/>').attr({type:'hidden', name:ctrl.name});
+		ctrl.value = ctrl.value0;
+		ctrl.val2dom();
+	}
+}
