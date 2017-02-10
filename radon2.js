@@ -1727,6 +1727,10 @@ Rn.C.String = function() {
 		});
 	}
 
+	this.setValue = function (value) {
+		return this.Value_setValue(value+'');	// Обязательное приведение к строке. Иначе числовой 0 трактуется как пустая строка валидатором NonEmpty
+	}
+
 } // end of CtrlString
 
 
