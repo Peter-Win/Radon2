@@ -13,7 +13,6 @@
  2016-10-13 - Добавлен CtrlHidden
  2016-10-27 - dom2val открыта для всех контроллеров
  2016-10-31 - Добавлен метод submit() в класс FormBase
- 2017-01-31 - Функции запрещения контроллеров
 */
 
 var Log = [];
@@ -789,6 +788,22 @@ var Radon = new function() {
 		root.walk(visitor);
 		return visitor.result;
 	}
+
+	// Разбор регулярного выражения.
+	// В ряде случаев оно указано в описании контроллера примерно так: data-regexp="/^[A-Z]+$/i"
+	// Нужно получить RegExp
+	self.parseRegexp = function(expSrc) {
+		if (typeof expSrc != 'string')
+			return expSrc;
+		// Необходимо разложить конструкцию /exp/suffix
+		var k1 = expSrc.indexOf('/'),
+			k2 = expSrc.lastIndexOf('/');
+		if (k2<=k1)
+			throw new Error('Invalid regexp definition: '+expSrc);
+		var exp = expSrc.substring(k1+1, k2),
+			suffix = expSrc.substring(k2+1);
+		return new RegExp(exp, suffix);
+	}
 }, Rn = Radon;
 
 var RadonObject = new function() {
@@ -1155,21 +1170,7 @@ Rn.V.Regexp = function() {
 	this.superClass = 'Base';
 	this.regexp = /\./;
 	this.getRegexp = function() {
-		var
-			expSrc= this.regexp,
-			exp, suffix, regexp, k1, k2;
-		if (typeof expSrc != 'string') {
-			regexp = expSrc;
-		} else {
-			// Необходимо разложить конструкцию /exp/suffix
-			k1 = expSrc.indexOf('/');
-			k2 = expSrc.lastIndexOf('/');
-			if (k2<=k1) throw new Error('Invalid regexp definition: '+expSrc);
-			exp = expSrc.substring(k1+1, k2);
-			suffix = expSrc.substring(k2+1);
-			regexp = new RegExp(exp, suffix);
-		}
-		return regexp;
+		return Rn.parseRegexp(this.regexp);
 	}
 	this.check = function(value) {
 		return this.getRegexp().test(value) ? 0 : this.msg;
@@ -1285,6 +1286,25 @@ Rn.Filter.Nullable = function() {
 		var name = this.ctrl.name;
 		if (!dstObj[name]) {
 			dstObj[name] = null;
+		}
+	}
+}
+
+// Замещать или удалять все вхождения указанного регкспа
+// Обязательный параметр regexp. Например data-regexp="/-/g" удаляет все знаки -
+// Необязательный параметр to - строка для замены. По-умолчанию = пустая строка, что означает удаление
+Rn.Filter.ReplaceRegexp = function() {
+	this.to = '';
+	this.superClass = 'Base';
+	this.filter = function(dstObj) {
+		var name = this.ctrl.name,
+			value = dstObj[name],
+			rx;
+		if (typeof value == 'string') {
+			rx = Rn.parseRegexp(this.regexp);
+			if (rx) {
+				dstObj[name] = value.replace(rx, this.to);
+			}
 		}
 	}
 }
