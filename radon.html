@@ -895,7 +895,7 @@ function ValidatorInsComp() {
   <p>
     Если Вы заинтересованы в повышении быстродействия, то наверняка захотите использовать прекомпилируемые шаблоны.
     В этом случае следует переопределить свойство <a href="#Ref_Rn_templId" class="coderef">Rn.templId</a>.
-    Например, вот как можно подключить шаблонизатор Handlebars:
+    Например, вот как можно подключить шаблонизатор <b>Handlebars</b>:
   </p>
   <pre class="jscript">
   var cache = {};
@@ -907,6 +907,10 @@ function ValidatorInsComp() {
     return template(params);
   }
   </pre>
+  <p>
+  Для подключения шаблонизатора <b>LoDash</b> или <b>Underscore</b> замените в предыдущем примере <code>Handlebars.compile</code> на
+  <code>_.template</code>
+  </p>
   
   <h3><a id="TxTemplCircuit"></a>Цепочка вызовов функций шаблонизации</h3>
   <svg width="7.2em" height="10.8em" viewBox="0 0 120 180" style="float:left; margin:0 2em;">
