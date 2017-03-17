@@ -2,6 +2,8 @@
 Radon - Browser Data Management System
 
 Files description:
-radon2.js - The working code of Radon system.
-radon.html - Detailed description in Russian.
-rn-examples - A few examples.
+<ul>
+<li>radon2.js - The working code of Radon system.</li>
+<li>radon.html - Detailed description in Russian.</li>
+<li>rn-examples - A few examples.</li>
+</ul>
